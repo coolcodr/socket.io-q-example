@@ -7,8 +7,8 @@ This is simple node.js application base on [socket.io-redis-sample](https://gith
 ```
 $ redis-server &
 $ rabbitmq-server &
-$ git clone https://github.com/stoshiya/socket.io-redis-sample.git
-$ cd socket.io-redis-sample
+$ git clone https://github.com/coolcodr/socket.io-q-example.git
+$ cd socket.io-q-example
 $ npm install
 $ PORT=3000 node app.js &
 $ PORT=3001 node app.js &
