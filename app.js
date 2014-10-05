@@ -5,6 +5,8 @@ var path = require('path');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var amqp = require('amqp');
+var util = require('util');
 
 var routes = require('./routes/index');
 var app = module.exports = express();
@@ -57,6 +59,40 @@ io.adapter(redis({ host: '127.0.0.1', port: 6379 }));
 
 io.sockets.on('connection', function(socket) {
   socket.on('message', function(data) {
-    socket.broadcast.emit('message', data);
+    // socket.broadcast.emit('message', data);
+    sendJobToQueue(rmqConn, {socketId: socket.id, msg: data})
   });
+});
+
+function randomId() {
+  return Math.random().toString(36).substring(7).toUpperCase();
+}
+
+var connectRabbitMq = function (callback) {
+  var logId = randomId();
+  var rmqConn = amqp.createConnection({
+    host: 'localhost',
+    port: 5672,
+    login: 'guest',
+    password: 'guest'
+  }, { reconnect: false });
+
+  rmqConn.on('error', function (err) {
+    logger.warn(util.format('[%s] RabbitMQ connection error: %s', logId, err));
+  });
+
+  rmqConn.on('ready', function () {
+    rmqConn.queue('socket-io-worker', { autoDelete: false, durable: true });
+    console.log(util.format('[%s] RabbitMQ connection ready', logId));
+    callback(rmqConn);
+  });
+};
+
+var sendJobToQueue = function(rmqConn, job) {
+  rmqConn.publish('socket-io-worker', JSON.stringify(job), {deliveryMode: 2});
+}
+
+var rmqConn = null
+connectRabbitMq(function(result) {
+  rmqConn = result;
 });

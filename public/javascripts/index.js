@@ -15,6 +15,10 @@
     $('div.message > ul').append('<li>' + new Date().toString() + ': ' + data + '</li>');
   });
 
+  socket.on('feedback', function(data) {
+    $('div.message > ul').append('<li>Feedback: ' + new Date().toString() + ': ' + data + '</li>');
+  });
+
   $('input').keydown(function(e) {
     if (e.keyCode === 13) { // press ENTER.
       submitHandler();
